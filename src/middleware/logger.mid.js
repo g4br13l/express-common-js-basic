@@ -2,9 +2,9 @@
 
 
 
-const logger = (req, res, next) => {
+const loggerMid = (req, res, next) => {
   console.log(`${req.method} ${req.protocol}://${req.get('host')}${req.originalUrl}`)
   next()
 }
 
-module.exports = logger
+module.exports = loggerMid

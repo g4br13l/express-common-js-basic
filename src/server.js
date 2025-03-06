@@ -1,5 +1,8 @@
 const express = require('express')
 const path = require('path')
+const posts = require('./routes/posts.route')
+const logger = require('./middleware/logger.mid')
+const errorHandler = require('./middleware/error.mid')
 
 
 const httpConf = {
@@ -10,9 +13,13 @@ const httpConf = {
 const app = express()
 
 
+// "use" is a middleware that executes each request.
+app.use(logger)
+app.use(express.json())
+app.use(express.urlencoded({ extended: false })) // allow to receive HTML form data.
+app.use(express.static(path.join(__dirname, 'public'))) // setup static folder.
 
-// setup static folder to use a static Server. "use" is a middleware.
-app.use(express.static(path.join(__dirname, 'public')))
+
 
 app.get('/', (req, res) => {
   //res.send({ message: 'Hello' })
@@ -23,34 +30,13 @@ app.get('/about', (req, res) => {
   res.send('<h1>About</h1>')
 })
 
+app.use('/api/posts', posts)
 
 
-
-const posts = [
-  { id: 1, title: 'Post One' },
-  { id: 2, title: 'Post Two' },
-  { id: 3, title: 'Post Three' }
-]
+// errorHandler middleware must be after routes
+app.use(errorHandler)
 
 
-app.get('/api/posts', (req, res) => {
-  console.log('req.query:', req.query)
-  const limit = parseInt(req.query.limit)
-  if (!isNaN(limit) && limit > 0) {
-    return res.status(200).json(posts.slice(0, limit))
-  }
-  return res.status(200).json(posts)
-
-})
-
-app.get('/api/posts/:id', (req, res) => {
-  console.log('req.params:', req.params)
-  const post = posts.find((post) => String(post.id) === req.params.id)
-  if (!post) {
-    return res.status(404).json({ message: `Post with id ${ req.params.id } not found.` })
-  }
-  return res.status(200).json(post)
-})
 
 
 app.listen(httpConf.port, () => {
